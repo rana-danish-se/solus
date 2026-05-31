@@ -1,0 +1,11 @@
+// .gitignore
+node_modules/
+.env
+dist/
+.next/
+build/
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
