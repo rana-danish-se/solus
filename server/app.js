@@ -1,14 +1,25 @@
-// server/app.js placeholder
-const express = require('express');
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import authRoutes from './src/routes/auth.routes.js';
+import { errorHandler, notFound } from './src/middleware/error.middleware.js';
+
 const app = express();
-const port = process.env.PORT || 4000;
+
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 // Simple health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Error Handling
+app.use(notFound);
+app.use(errorHandler);
+
+export default app;

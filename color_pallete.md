@@ -1,0 +1,1 @@
+RoleColorHexBackgroundPure White#FFFFFFPrimary TextCharcoal#1C1C1ESecondaryDark Slate#2C2C2EAccentCool Charcoal#3A3A3CSubtle HighlightSilver-Gray#8E8E93Optional GlowMuted Indigo#5E5CE6
