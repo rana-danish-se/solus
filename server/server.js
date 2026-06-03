@@ -6,7 +6,7 @@ dotenv.config();
 
 // Connect to database
 // Uncomment when you have a local MongoDB running or MongoDB URI set in .env
-// connectDB();
+connectDB();
 
 const port = process.env.PORT || 4000;
 

@@ -1,4 +1,5 @@
-import { Search, Bell } from 'lucide-react';
+import { Search, Settings } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Header() {
   return (
@@ -17,10 +18,9 @@ export default function Header() {
           />
         </div>
         
-        <button className="relative p-2 text-foreground hover:bg-highlight/10 rounded-full transition-colors">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
-        </button>
+        <Link href="/settings" className="relative p-2 text-foreground hover:bg-highlight/10 rounded-full transition-colors">
+          <Settings className="w-5 h-5" />
+        </Link>
       </div>
     </header>
   );

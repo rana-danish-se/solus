@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './src/routes/auth.routes.js';
+import settingsRoutes from './src/routes/settings.routes.js';
 import { errorHandler, notFound } from './src/middleware/error.middleware.js';
 
 const app = express();
@@ -17,6 +18,7 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Error Handling
 app.use(notFound);
