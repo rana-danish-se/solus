@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { getSettings, updateSettings } from '../services/settings.service';
+import useToastStore from './toastStore';
 
 const useSettingsStore = create((set, get) => ({
   settings: {
@@ -100,9 +101,11 @@ const useSettingsStore = create((set, get) => ({
         set({
           lastSynced: new Date(),
         });
+        useToastStore.getState().addToast('Settings saved successfully', 'success');
       }
     } catch (error) {
       set({ error: error.message || 'Failed to save settings' });
+      useToastStore.getState().addToast(error.message || 'Failed to save settings', 'error');
     } finally {
       set({ isSaving: false });
     }

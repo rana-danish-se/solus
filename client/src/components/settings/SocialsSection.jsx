@@ -1,5 +1,5 @@
 import useSettingsStore from '@/store/settingsStore';
-import { Link, Github, Twitter, MessageSquare, Instagram, Globe } from 'lucide-react';
+import { Briefcase, Code, Hash, MessageSquare, Camera, Globe } from 'lucide-react';
 
 export default function SocialsSection() {
   const { settings, updateSocialField } = useSettingsStore();
@@ -31,11 +31,11 @@ export default function SocialsSection() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <InputWithIcon icon={Link} name="linkedin" value={settings.socials?.linkedin} placeholder="LinkedIn URL" />
-        <InputWithIcon icon={Github} name="github" value={settings.socials?.github} placeholder="GitHub URL" />
-        <InputWithIcon icon={Twitter} name="twitter" value={settings.socials?.twitter} placeholder="Twitter/X Handle" />
+        <InputWithIcon icon={Briefcase} name="linkedin" value={settings.socials?.linkedin} placeholder="LinkedIn URL" />
+        <InputWithIcon icon={Code} name="github" value={settings.socials?.github} placeholder="GitHub URL" />
+        <InputWithIcon icon={Hash} name="twitter" value={settings.socials?.twitter} placeholder="Twitter/X Handle" />
         <InputWithIcon icon={MessageSquare} name="reddit" value={settings.socials?.reddit} placeholder="Reddit Username" />
-        <InputWithIcon icon={Instagram} name="instagram" value={settings.socials?.instagram} placeholder="Instagram Profile" />
+        <InputWithIcon icon={Camera} name="instagram" value={settings.socials?.instagram} placeholder="Instagram Profile" />
         <InputWithIcon icon={Globe} name="portfolio" value={settings.socials?.portfolio} placeholder="Portfolio Website" />
       </div>
     </section>
