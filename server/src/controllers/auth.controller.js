@@ -31,3 +31,13 @@ export const login = asyncHandler(async (req, res) => {
   res.status(401);
   throw new Error('Invalid credentials');
 });
+
+export const logout = asyncHandler(async (req, res) => {
+  res.cookie('auth_token', '', {
+    httpOnly: true,
+    expires: new Date(0),
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+  res.json({ success: true, message: 'Logged out successfully' });
+});

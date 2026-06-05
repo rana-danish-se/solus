@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   GraduationCap,
@@ -26,6 +26,7 @@ const navItems = [
 
 export default function Sidebar() {
   const logout = useAuthStore((state) => state.logout);
+  const pathname = usePathname();
   const router = useRouter();
 
   const handleLogout = () => {
@@ -49,7 +50,7 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 mt-4 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = item.name === 'Dashboard';
+          const isActive = pathname.startsWith(item.href);
           return (
             <Link
               key={item.name}

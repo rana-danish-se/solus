@@ -6,16 +6,17 @@ import {
   updateNote,
   deleteNote,
 } from '../controllers/notes.controller.js';
+import { protect } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
 router.route('/')
-  .post(createNote)
-  .get(getAllNotes);
+  .post(protect, createNote)
+  .get(protect, getAllNotes);
 
 router.route('/:id')
-  .get(getNoteById)
-  .put(updateNote)
-  .delete(deleteNote);
+  .get(protect, getNoteById)
+  .put(protect, updateNote)
+  .delete(protect, deleteNote);
 
 export default router;

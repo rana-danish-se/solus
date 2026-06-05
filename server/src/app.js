@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import noteRoutes from './routes/note.routes.js';
+import resourceRoutes from './routes/resource.routes.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 
 const app = express();
@@ -19,6 +20,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/notes', noteRoutes);
+app.use('/api/resources', resourceRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

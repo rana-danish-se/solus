@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { loginUser } from '../services/auth.service';
+import { loginUser, logoutUser } from '../services/auth.service';
 
 const useAuthStore = create(
   persist(
@@ -34,7 +34,12 @@ const useAuthStore = create(
         }
       },
 
-      logout: () => {
+      logout: async () => {
+        try {
+          await logoutUser();
+        } catch {
+          // Server logout is best-effort; clear local state regardless
+        }
         set({ user: null, token: null, isAuthenticated: false, error: null });
       },
 
