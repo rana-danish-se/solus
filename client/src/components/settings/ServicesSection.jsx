@@ -33,7 +33,7 @@ export default function ServicesSection() {
         {settings.services?.map((service, index) => (
           <div 
             key={index} 
-            className="flex items-center gap-2 px-4 py-2 bg-[#2a2a2a] text-foreground rounded-md text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-highlight/10 text-foreground rounded-md text-sm"
           >
             {service}
             <button 

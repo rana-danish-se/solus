@@ -24,8 +24,7 @@ export async function callLLM(prompt, options = {}) {
     }
   }
 
-  const summary = errors.map((e) => `${e.provider}: ${e.message}`).join(' | ');
-  throw new Error(`All LLM providers failed. ${summary}`);
+  throw new Error('All LLM providers failed. Please check your API keys and try again.');
 }
 
 export { callGroq, callOpenRouter, callGemini };

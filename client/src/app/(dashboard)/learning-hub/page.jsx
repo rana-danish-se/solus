@@ -21,7 +21,9 @@ export default function LearningHubPage() {
     let mounted = true;
     (async () => {
       try {
-        const data = await fetchNotes();
+        const params = {};
+        if (typeFilter !== 'all') params.type = typeFilter;
+        const data = await fetchNotes(params);
         if (mounted) setNotes(Array.isArray(data) ? data : []);
       } catch (err) {
         addToast(err.message || 'Failed to load notes', 'error');
@@ -32,24 +34,18 @@ export default function LearningHubPage() {
     return () => {
       mounted = false;
     };
-  }, [addToast]);
+  }, [addToast, typeFilter]);
 
   const filteredNotes = useMemo(() => {
-    let result = notes;
-    if (typeFilter !== 'all') {
-      result = result.filter((n) => n.type === typeFilter);
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (n) =>
-          n.title?.toLowerCase().includes(q) ||
-          n.tags?.some((t) => t.toLowerCase().includes(q)) ||
-          n.summary?.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [notes, typeFilter, search]);
+    if (!search.trim()) return notes;
+    const q = search.toLowerCase();
+    return notes.filter(
+      (n) =>
+        n.title?.toLowerCase().includes(q) ||
+        n.tags?.some((t) => t.toLowerCase().includes(q)) ||
+        n.summary?.toLowerCase().includes(q)
+    );
+  }, [notes, search]);
 
   return (
     <div className="max-w-[1100px] mx-auto space-y-6">

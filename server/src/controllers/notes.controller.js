@@ -6,12 +6,22 @@ import { buildUserContext } from '../prompts/index.js';
 import { buildNoteProcessingPrompt } from '../prompts/notes.js';
 
 function parseLLMJson(raw) {
-  const cleaned = raw.replace(/```json|```/g, '').trim();
+  let cleaned = raw.replace(/```json|```/g, '').trim();
   try {
     return JSON.parse(cleaned);
-  } catch (err) {
-    console.error('[NotesController] Failed to parse LLM JSON:', cleaned);
-    throw new Error('Invalid JSON returned from LLM');
+  } catch {
+    cleaned = cleaned
+      .replace(/,\s*([}\]])/g, '$1')
+      .replace(/(['"])?(\w+)(['"])?\s*:/g, '"$2":')
+      .replace(/'/g, '"')
+      .replace(/,\s*,/g, ',')
+      .trim();
+    try {
+      return JSON.parse(cleaned);
+    } catch (err) {
+      console.error('[NotesController] Failed to parse LLM JSON:', cleaned);
+      return { summary: '', type: 'insight', tags: [], takeaways: [] };
+    }
   }
 }
 
@@ -30,10 +40,14 @@ export const createNote = asyncHandler(async (req, res) => {
     throw new Error('Title and content are required');
   }
 
-  const settings = await Settings.findOne({ type: 'global' });
-  const userContext = buildUserContext(settings);
-
-  const aiData = await processNoteWithAI(title, content, userContext);
+  let aiData = { summary: '', type: 'insight', tags: [], takeaways: [] };
+  try {
+    const settings = await Settings.findOne({ type: 'global' });
+    const userContext = buildUserContext(settings);
+    aiData = await processNoteWithAI(title, content, userContext);
+  } catch (err) {
+    console.warn('[NotesController] AI processing failed, saving note without AI enrichment:', err.message);
+  }
 
   const note = await Note.create({
     title,
@@ -49,12 +63,16 @@ export const createNote = asyncHandler(async (req, res) => {
 });
 
 export const getAllNotes = asyncHandler(async (req, res) => {
-  const { type, tag } = req.query;
+  const { type, tag, page = 1, limit = 50 } = req.query;
   const filter = {};
   if (type) filter.type = type;
-  if (tag) filter.tags = tag;
+  if (tag) filter.tags = { $regex: new RegExp(tag, 'i') };
 
-  const notes = await Note.find(filter).sort({ createdAt: -1 });
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const notes = await Note.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
   res.json(notes);
 });
 

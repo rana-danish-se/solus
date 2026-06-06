@@ -36,7 +36,7 @@ export default function NewNotePage() {
     <div className="max-w-3xl mx-auto pb-24">
       {/* Back Button */}
       <button
-        onClick={() => router.back()}
+        onClick={() => router.push('/learning-hub')}
         className="flex items-center gap-1.5 text-sm text-highlight hover:text-foreground transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />

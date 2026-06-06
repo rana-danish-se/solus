@@ -13,16 +13,17 @@ export const login = asyncHandler(async (req, res) => {
     // Generate token (expires in 7 days)
     const token = jwt.sign(
       { email }, 
-      process.env.JWT_SECRET || 'fallback_secret', 
+      process.env.JWT_SECRET, 
       { expiresIn: '7d' }
     );
     
     // Set HTTP-only cookie
     res.cookie('auth_token', token, {
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/',
     });
     
     return res.json({ success: true, message: 'Logged in successfully' });
@@ -32,12 +33,17 @@ export const login = asyncHandler(async (req, res) => {
   throw new Error('Invalid credentials');
 });
 
+export const getMe = asyncHandler(async (req, res) => {
+  res.json({ success: true, email: req.user.email });
+});
+
 export const logout = asyncHandler(async (req, res) => {
   res.cookie('auth_token', '', {
     httpOnly: true,
     expires: new Date(0),
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
+    path: '/',
   });
   res.json({ success: true, message: 'Logged out successfully' });
 });

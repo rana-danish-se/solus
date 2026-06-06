@@ -1,5 +1,6 @@
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 const outfit = Outfit({
   variable: "--font-sans",
@@ -10,8 +11,6 @@ export const metadata = {
   title: "Solus OS",
   description: "Personal Workspace",
 };
-
-import ToastContainer from "@/components/ui/ToastContainer";
 
 export default function RootLayout({ children }) {
   return (

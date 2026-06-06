@@ -15,14 +15,25 @@ export const getSettings = asyncHandler(async (req, res) => {
   res.json(settings);
 });
 
+const ALLOWED_FIELDS = [
+  'fullName', 'headline', 'email', 'phone', 'tagline',
+  'socials', 'about', 'goals', 'voice', 'resume', 'services',
+];
+
 // @desc    Update global settings
 // @route   PUT /api/settings
 // @access  Private
 export const updateSettings = asyncHandler(async (req, res) => {
-  // We expect the body to have all the fields we want to update
+  const updates = {};
+  for (const field of ALLOWED_FIELDS) {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  }
+
   const updatedSettings = await Settings.findOneAndUpdate(
     { type: 'global' },
-    req.body,
+    updates,
     {
       new: true,
       upsert: true,

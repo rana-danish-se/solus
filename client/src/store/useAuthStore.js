@@ -1,27 +1,30 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { loginUser, logoutUser } from '../services/auth.service';
+import api from '../lib/axios';
 
 const useAuthStore = create(
   persist(
     (set) => ({
-      user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
+
+      checkAuth: async () => {
+        try {
+          await api.get('/auth/me');
+          set({ isAuthenticated: true });
+        } catch {
+          set({ isAuthenticated: false });
+        }
+      },
 
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
           const data = await loginUser(email, password);
           if (data.success) {
-            set({ 
-              user: data.user || { email }, // Fallback if API doesn't return user
-              token: data.token || null,
-              isAuthenticated: true, 
-              isLoading: false 
-            });
+            set({ isAuthenticated: true, isLoading: false });
             return { success: true };
           } else {
             set({ error: data.message || 'Login failed', isLoading: false });
@@ -38,15 +41,15 @@ const useAuthStore = create(
         try {
           await logoutUser();
         } catch {
-          // Server logout is best-effort; clear local state regardless
         }
-        set({ user: null, token: null, isAuthenticated: false, error: null });
+        set({ isAuthenticated: false, error: null });
       },
 
       clearError: () => set({ error: null })
     }),
     {
-      name: 'auth-storage', // Name of the storage key
+      name: 'auth-storage',
+      partialize: (state) => ({ isAuthenticated: state.isAuthenticated }),
     }
   )
 );

@@ -51,11 +51,11 @@ export const createResource = asyncHandler(async (req, res) => {
 });
 
 export const getAllResources = asyncHandler(async (req, res) => {
-  const { category, tag, search } = req.query;
+  const { category, tag, search, page = 1, limit = 50 } = req.query;
   const filter = {};
 
   if (category) filter.category = category;
-  if (tag) filter.tags = tag;
+  if (tag) filter.tags = { $regex: new RegExp(tag, 'i') };
 
   if (search && typeof search === 'string' && search.trim()) {
     const safe = escapeRegex(search.trim());
@@ -63,7 +63,11 @@ export const getAllResources = asyncHandler(async (req, res) => {
     filter.$or = [{ title: regex }, { description: regex }];
   }
 
-  const resources = await Resource.find(filter).sort({ createdAt: -1 });
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const resources = await Resource.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
   res.json(resources);
 });
 

@@ -85,7 +85,7 @@ export default function EditResourcePage() {
   return (
     <div className="max-w-3xl mx-auto pb-24">
       <button
-        onClick={() => router.back()}
+        onClick={() => router.push('/resource-vault')}
         className="flex items-center gap-1.5 text-sm text-highlight hover:text-foreground transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />

@@ -4,7 +4,7 @@ const useToastStore = create((set, get) => ({
   toasts: [],
   
   addToast: (message, type = 'info', duration = 4000) => {
-    const id = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+    const id = crypto.randomUUID();
     
     set((state) => ({
       toasts: [...state.toasts, { id, message, type }]

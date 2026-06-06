@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Link2, Loader2, Save, Globe, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, Link2, Loader2, Save, Globe, Sparkles } from 'lucide-react';
 import { scrapeResourceMetadata, createResource } from '@/services/resources.service';
 import { RESOURCE_CATEGORIES } from '@/lib/resourceConstants';
 import useToastStore from '@/store/toastStore';
@@ -104,7 +104,7 @@ export default function NewResourcePage() {
     <div className="max-w-3xl mx-auto pb-24">
       {/* Back Button */}
       <button
-        onClick={() => (step === 2 ? handleReset() : router.back())}
+        onClick={() => (step === 2 ? handleReset() : router.push('/resource-vault'))}
         className="flex items-center gap-1.5 text-sm text-highlight hover:text-foreground transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />

@@ -1,6 +1,11 @@
-import 'dotenv/config'; // Must be the very first import in ES modules
+import 'dotenv/config';
 import app from './src/app.js';
 import connectDB from './config/db.js';
+
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set');
+  process.exit(1);
+}
 
 connectDB();
 
@@ -12,5 +17,10 @@ const server = app.listen(port, () => {
 
 process.on('unhandledRejection', (err) => {
   console.log(`Error: ${err.message}`);
+  server.close(() => process.exit(1));
+});
+
+process.on('uncaughtException', (err) => {
+  console.log(`Uncaught Exception: ${err.message}`);
   server.close(() => process.exit(1));
 });

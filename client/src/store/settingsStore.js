@@ -86,7 +86,7 @@ const useSettingsStore = create((set, get) => ({
         });
       }
     } catch (error) {
-      set({ error: error.message || 'Failed to fetch settings' });
+      set({ error: error.response?.data?.message || error.message || 'Failed to fetch settings' });
     } finally {
       set({ isLoading: false });
     }
@@ -104,8 +104,9 @@ const useSettingsStore = create((set, get) => ({
         useToastStore.getState().addToast('Settings saved successfully', 'success');
       }
     } catch (error) {
-      set({ error: error.message || 'Failed to save settings' });
-      useToastStore.getState().addToast(error.message || 'Failed to save settings', 'error');
+      const msg = error.response?.data?.message || error.message || 'Failed to save settings';
+      set({ error: msg });
+      useToastStore.getState().addToast(msg, 'error');
     } finally {
       set({ isSaving: false });
     }
