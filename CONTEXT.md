@@ -166,7 +166,22 @@ solus/
 ### 🔧 Phase 4 (In Progress) — Content Automation
 - **Models created**: `contentStrategy.model.js`, `postIdea.model.js`, `post.model.js`
 - **Cloudinary/Multer setup**: Upload middleware configured (`upload.middleware.js`)
-- Next steps: CRUD routes/controllers for strategies, ideas, posts; AI content planner; approval workflow; image generation integration
+- **LinkedIn service** (`server/src/services/linkedin.service.js`):
+  - `publishToLinkedIn(content, imageUrl = null)` — single exported function
+  - Branch A (text-only): `POST /v2/ugcPosts` with `shareMediaCategory: "NONE"`
+  - Branch B (image): 3-step pipeline — register asset (`/v2/assets?action=registerUpload` with `feedshare-image` recipe) → fetch from Cloudinary via axios + PUT binary to `uploadUrl` → publish with `shareMediaCategory: "IMAGE"`
+  - Env: `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_PERSON_URN` (auto-prefixed with `urn:li:person:` if missing)
+  - Returns LinkedIn post ID string (`response.data.id`) for committing to `Post.linkedinPostId`
+  - All steps wrapped in try/catch with `err.response?.data` logging
+- **Content prompts** (`server/src/prompts/content.js`):
+  - `generateIdeaPrompt(strategy, recentTopics)` — injects strategy pillars/audience/tone/formatNotes/avoidTopics + recent topics list; returns single raw JSON `{ topic, angle, pillar }`
+  - `generatePostPrompt(idea, strategy, userSettings)` — injects user profile + strategy + approved idea; hardcoded formatting example with Unicode bold + `→` arrows; returns post text only (no JSON, no markdown, no labels)
+  - Both re-exported from `prompts/index.js` alongside `buildUserContext`
+- **LinkedIn env setup** (`server/.env`):
+  - `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` (from developer portal)
+  - `LINKEDIN_ACCESS_TOKEN` — 60-day expiry, obtained via OAuth 2.0 flow (see env-setup notes below)
+  - `LINKEDIN_PERSON_URN` — formatted as `urn:li:person:<id>`, obtained via `/v2/userinfo` endpoint
+- **Next steps**: CRUD routes/controllers for strategies, ideas, posts; AI content planner (Vercel Cron); approval workflow; image generation integration; image-to-Cloudinary pipeline for posts
 
 ---
 

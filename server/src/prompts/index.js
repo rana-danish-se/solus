@@ -24,3 +24,5 @@ USER PROFILE
 - Services Offered: ${servicesList}
 `.trim();
 }
+
+export { generateIdeaPrompt, generatePostPrompt } from './content.js';
