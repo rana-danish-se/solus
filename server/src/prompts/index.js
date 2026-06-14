@@ -25,4 +25,4 @@ USER PROFILE
 `.trim();
 }
 
-export { generateIdeaPrompt, generatePostPrompt } from './content.js';
+export { generateIdeaPrompt, generatePostPrompt, generateHookPrompt, generateBodyPrompt, generateCTAPrompt } from './content.js';

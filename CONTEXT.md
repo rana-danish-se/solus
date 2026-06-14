@@ -33,7 +33,10 @@ solus/
 │   │   │   └── (dashboard)/         # Authenticated route group
 │   │   │       ├── layout.jsx       # Sidebar + Header wrapper
 │   │   │       ├── dashboard/page.jsx
-│   │   │       ├── settings/page.jsx
+│   │   │       ├── settings/
+│   │   │       │   ├── page.jsx
+│   │   │       │   └── content-strategy/page.jsx
+│   │   │       ├── content-studio/page.jsx  # 3-stage: Ideas → Build → Review
 │   │   │       ├── learning-hub/
 │   │   │       │   ├── page.jsx
 │   │   │       │   ├── new/page.jsx
@@ -47,12 +50,12 @@ solus/
 │   │   │   ├── dashboard/           # Dashboard widgets (placeholder data)
 │   │   │   ├── Learning/            # NoteCard
 │   │   │   ├── ResourceVault/       # ResourceCard, TagInput
-│   │   │   ├── settings/            # Identity, Socials, About, Voice, Services, Resume
+│   │   │   ├── settings/            # Identity, Socials, About, Voice, Services, Resume, ContentStrategy
 │   │   │   └── ui/                  # Card, Badge, ToastContainer
 │   │   ├── lib/
 │   │   │   ├── axios.js             # Axios instance (cookie-based auth)
 │   │   │   └── resourceConstants.js
-│   │   ├── services/                # API service modules (auth, notes, resources, settings)
+│   │   ├── services/                # auth, notes, resources, settings, content, contentStrategy
 │   │   └── store/                   # Zustand stores (auth, settings, toast)
 │   ├── next.config.mjs
 │   ├── package.json
@@ -64,6 +67,7 @@ solus/
 │   │   └── cloudinary.js            # Cloudinary client config
 │   ├── src/
 │   │   ├── app.js                   # Express app setup
+│   │   ├── scheduler.js             # node-cron: publishes scheduled posts every minute
 │   │   ├── middleware/
 │   │   │   ├── auth.middleware.js    # JWT cookie verification
 │   │   │   ├── error.middleware.js   # Error handler + multer error handling
@@ -72,7 +76,9 @@ solus/
 │   │   │   ├── auth.controller.js
 │   │   │   ├── notes.controller.js
 │   │   │   ├── resources.controller.js
-│   │   │   └── settings.controller.js
+│   │   │   ├── settings.controller.js
+│   │   │   ├── content.controller.js      # ~15 endpoints for ideas + posts
+│   │   │   └── contentStrategy.controller.js # GET/PUT per platform
 │   │   ├── models/
 │   │   │   ├── note.model.js
 │   │   │   ├── resource.model.js
@@ -84,20 +90,26 @@ solus/
 │   │   │   ├── auth.routes.js
 │   │   │   ├── note.routes.js
 │   │   │   ├── resource.routes.js
-│   │   │   └── settings.routes.js
+│   │   │   ├── settings.routes.js
+│   │   │   ├── content.routes.js
+│   │   │   └── contentStrategy.routes.js
 │   │   ├── services/
 │   │   │   ├── llm/
-│   │   │   │   ├── index.js         # Fallback chain: Groq → OpenRouter → Gemini
+│   │   │   │   ├── index.js         # callLLM + callLLMWithPriority (custom provider order)
 │   │   │   │   ├── groq.js
 │   │   │   │   ├── openrouter.js
 │   │   │   │   └── gemini.js
+│   │   │   ├── content.service.js   # generateIdeas, generatePost, generateHook/Body/CTA, assembleSections
+│   │   │   ├── publisher.service.js # publishPost(postId) — calls LinkedIn, updates post status
+│   │   │   ├── linkedin.service.js  # publishToLinkedIn(content, imageUrl) — text + image flows
 │   │   │   └── scraper.js           # URL metadata scraper (cheerio)
 │   │   ├── prompts/
-│   │   │   ├── index.js             # buildUserContext() for LLM prompts
+│   │   │   ├── index.js             # buildUserContext + re-exports all content prompts
+│   │   │   ├── content.js           # generateIdeaPrompt, generatePostPrompt, generateHook/Body/CTAPrompt
 │   │   │   └── notes.js             # Note processing prompt
 │   │   └── utils/
 │   │       └── asyncHandler.js
-│   ├── server.js                    # Entry point
+│   ├── server.js                    # Entry point — connects DB, starts Express + scheduler
 │   └── package.json
 │
 ├── CONTEXT.md                       # This file
@@ -116,7 +128,8 @@ solus/
 - `asyncHandler` wrapper for all async controllers (catches errors, passes to error middleware)
 - Auth: httpOnly cookie (`auth_token`) with JWT, verified in `protect` middleware
 - Models: Mongoose schema with `timestamps: true`, no comments, clean field definitions
-- LLM: `callLLM(prompt)` abstracts multi-provider fallback chain
+- LLM: `callLLM(prompt)` abstracts multi-provider fallback chain; `callLLMWithPriority(prompt, options, providerOrder)` accepts custom provider ordering
+- Content service: `content.service.js` orchestrates all content generation (ideas, hook, body, CTA) and `assembleSections` for final post assembly
 
 ### Client (Next.js + React)
 - **App Router** with route groups (`(dashboard)` for authenticated routes)
@@ -163,25 +176,59 @@ solus/
 - Search by title/description
 - Resource schema: url (unique), title, siteName, favicon, metaDescription, description, category, tags, embedding
 
-### 🔧 Phase 4 (In Progress) — Content Automation
-- **Models created**: `contentStrategy.model.js`, `postIdea.model.js`, `post.model.js`
-- **Cloudinary/Multer setup**: Upload middleware configured (`upload.middleware.js`)
-- **LinkedIn service** (`server/src/services/linkedin.service.js`):
-  - `publishToLinkedIn(content, imageUrl = null)` — single exported function
-  - Branch A (text-only): `POST /v2/ugcPosts` with `shareMediaCategory: "NONE"`
-  - Branch B (image): 3-step pipeline — register asset (`/v2/assets?action=registerUpload` with `feedshare-image` recipe) → fetch from Cloudinary via axios + PUT binary to `uploadUrl` → publish with `shareMediaCategory: "IMAGE"`
-  - Env: `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_PERSON_URN` (auto-prefixed with `urn:li:person:` if missing)
-  - Returns LinkedIn post ID string (`response.data.id`) for committing to `Post.linkedinPostId`
-  - All steps wrapped in try/catch with `err.response?.data` logging
-- **Content prompts** (`server/src/prompts/content.js`):
-  - `generateIdeaPrompt(strategy, recentTopics)` — injects strategy pillars/audience/tone/formatNotes/avoidTopics + recent topics list; returns single raw JSON `{ topic, angle, pillar }`
-  - `generatePostPrompt(idea, strategy, userSettings)` — injects user profile + strategy + approved idea; hardcoded formatting example with Unicode bold + `→` arrows; returns post text only (no JSON, no markdown, no labels)
-  - Both re-exported from `prompts/index.js` alongside `buildUserContext`
-- **LinkedIn env setup** (`server/.env`):
-  - `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` (from developer portal)
-  - `LINKEDIN_ACCESS_TOKEN` — 60-day expiry, obtained via OAuth 2.0 flow (see env-setup notes below)
-  - `LINKEDIN_PERSON_URN` — formatted as `urn:li:person:<id>`, obtained via `/v2/userinfo` endpoint
-- **Next steps**: CRUD routes/controllers for strategies, ideas, posts; AI content planner (Vercel Cron); approval workflow; image generation integration; image-to-Cloudinary pipeline for posts
+### ✅ Phase 4 — Content Automation
+
+**Models**
+- `contentStrategy.model.js` — per-platform strategy (audience, tone, formatNotes, pillars, avoidTopics, maxPostsPerWeek, preferredPostingTime)
+- `postIdea.model.js` — schema: platform, topic, angle, pillar, status (`pending` | `pending_approval` | `approved` | `rejected`), weekOfDate, scheduledFor, postId ref
+- `post.model.js` — schema: ideaId ref, platform, content (assembled), `sections: { hook, body, cta }`, image: `{ url, publicId, source }`, status (`draft` | `pending_approval` | `approved` | `scheduled` | `published` | `failed`), scheduledAt, publishedAt, linkedinPostId, revisions
+
+**LLM Layer**
+- `callLLMWithPriority(prompt, options, providerOrder)` — accepts custom provider array, runs fallback loop. `callLLM` delegates to it with default chain `groq → openrouter → gemini`.
+- Section-level regeneration uses Gemini-first order: `['gemini', 'groq', 'openrouter']`.
+
+**Prompts** (`server/src/prompts/content.js`)
+- `generateIdeaPrompt(strategy, recentTopics)` — returns `{ topic, angle, pillar }` JSON
+- `generatePostPrompt(idea, strategy, userSettings)` — full post with Unicode bold + → arrows
+- `generateHookPrompt(idea, strategy, userSettings)` — 1–2 lines, no "I"/"Today"/"Excited" openers, no buzzwords
+- `generateBodyPrompt(idea, strategy, userSettings, hook)` — 4–10 em-dash lines, one concrete detail each
+- `generateCTAPrompt(idea, strategy, userSettings, hook, body)` — specific engagement question + 4–5 hashtags
+- All re-exported from `prompts/index.js` alongside `buildUserContext`
+
+**Content Service** (`server/src/services/content.service.js`)
+- `generateIdeas(strategy, recentTopics)` — uses `generateIdeaPrompt`, Gemini-first, returns parsed `[idea]`
+- `generatePost(idea, strategy, userSettings)` — uses `generatePostPrompt`, returns raw text
+- `generateHook(idea, strategy, userSettings)` — returns hook text
+- `generateBody(idea, strategy, userSettings, hook)` — returns body text
+- `generateCTA(idea, strategy, userSettings, hook, body)` — returns CTA text
+- `assembleSections(hook, body, cta)` — concatenates with double line breaks
+
+**LinkedIn Service** (`server/src/services/linkedin.service.js`)
+- `publishToLinkedIn(content, imageUrl = null)` — text-only (ugcPosts NONE) or image (3-step: register → upload binary → publish IMAGE)
+- Env: `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_PERSON_URN` (auto-prefixed if missing)
+- Returns LinkedIn post ID string
+
+**Publisher + Scheduler**
+- `publisher.service.js` — `publishPost(postId)`: loads post, calls `publishToLinkedIn`, sets status `published`/`failed`, saves `publishedAt` + `linkedinPostId`
+- `scheduler.js` — node-cron every minute: queries `status: 'scheduled'` + `scheduledAt <= now`, calls `publishPost` for each. Initialized in `server.js` after DB connect.
+
+**Content Controller** (`server/src/controllers/content.controller.js`)
+- Ideas: `GET /api/content/ideas`, `POST /api/content/ideas/generate`, `DELETE /api/content/ideas/:id`, `PATCH /api/content/ideas/:id/approve`
+- Posts: `GET /api/content/posts`, `POST /api/content/posts/generate-hook`, regen hook/body/cta, gen body/cta, `PATCH /api/content/posts/:id/approve`, `PATCH /api/content/posts/:id/section`, `POST /api/content/posts/:id/image` (multer/Cloudinary), `DELETE /api/content/posts/:id/image`, `POST /api/content/posts/:id/publish`
+- `GET /api/content-strategy`, `PUT /api/content-strategy/:platform` (separate routes via contentStrategy.controller.js)
+
+**Frontend — Content Studio** (`/content-studio`)
+- **Stage 1 (Ideas)**: Lists pending ideas with approve/delete. "Generate Ideas" button calls Gemini-first LLM. "Continue where you left off" jumps to builder.
+- **Stage 2 (Build)**: Sequential post builder. Collapsible Hook → Body → CTA sections unlock in order. Each has display, edit textarea, and regenerate button. Downstream sections clear on hook/body edits. Approve assembles and saves `post.content`.
+- **Stage 3 (Review)**: Full post preview, image upload/remove (multer→Cloudinary), datetime picker for scheduling, Save as Draft / Schedule buttons.
+
+**Frontend — Content Strategy Settings** (`/settings/content-strategy`)
+- Standalone page with fields for audience, tone, format notes, max posts/week, preferred posting time (time picker), content pillars (tag input), topics to avoid (tag input).
+- Linked from `/settings` via "Manage →" link.
+
+**Frontend — Client Services** (`client/src/services/`)
+- `content.service.js` — all content CRUD + image + publish API calls
+- `contentStrategy.service.js` — `getContentStrategies()`, `updateContentStrategy(platform, data)`
 
 ---
 
@@ -233,7 +280,7 @@ router.post('/upload-image', protect, uploadImage, controller);
 ## Build Roadmap (Remaining)
 | Phase | Module | Status |
 |-------|--------|--------|
-| 4 | Content Automation | 🔧 In progress |
+| 4 | Content Automation | ✅ Complete |
 | 5 | Personal Brand Intelligence | 📋 Planned |
 | 6 | Freelance & Income Tracker | 📋 Planned |
 | 7 | Achievement & Portfolio Engine | 📋 Planned |

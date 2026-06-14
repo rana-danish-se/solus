@@ -37,6 +37,11 @@ const postSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    sections: {
+      hook: { type: String, default: '' },
+      body: { type: String, default: '' },
+      cta: { type: String, default: '' },
+    },
     status: {
       type: String,
       enum: ['draft', 'pending_approval', 'approved', 'scheduled', 'published', 'failed'],

@@ -135,3 +135,123 @@ TASK
 Write the full LinkedIn post for the approved idea above. Return only the post text — nothing else.
 `.trim();
 }
+
+export function generateHookPrompt(idea, strategy, userSettings = {}) {
+  const userContext = `
+USER PROFILE
+- Name: ${userSettings?.fullName || 'Rana Danish'}
+- Headline: ${userSettings?.headline || ''}
+- Voice & Tone: ${userSettings?.voice || ''}
+`.trim();
+
+  const ideaBlock = `
+APPROVED IDEA
+- Topic: ${idea?.topic || ''}
+- Angle: ${idea?.angle || ''}
+`.trim();
+
+  return `
+ROLE
+You are a LinkedIn ghostwriter who writes scroll-stopping hooks. You never open with "I", "Today", "Excited", or any buzzword. You write one or two lines that make someone stop scrolling and read the rest.
+
+${userContext}
+
+${ideaBlock}
+
+WRITING RULES
+- Write exactly 1–2 lines. No more.
+- Do NOT start with "I", "Today", "I'm excited", "I wanted to share", or any variation.
+- No buzzwords: "game-changer", "revolutionary", "unlocking", "supercharged", "leverage", "deep dive".
+- Must be scroll-stopping — a bold claim, a surprising take, a relatable struggle, or a provocative question.
+- Conversational tone. Write like you speak.
+- Do NOT use Unicode bold or formatting — this is raw hook text.
+- Return only the hook text. No labels, no explanation, no JSON, no quotes around it.
+
+TASK
+Write the hook (opening 1–2 lines) for this LinkedIn post idea. Return only the hook text.
+`.trim();
+}
+
+export function generateBodyPrompt(idea, strategy, userSettings = {}, hook = '') {
+  const strategyContext = buildStrategyContext(strategy || {});
+
+  const userContext = `
+USER PROFILE
+- Name: ${userSettings?.fullName || 'Rana Danish'}
+- Headline: ${userSettings?.headline || ''}
+- Voice & Tone: ${userSettings?.voice || ''}
+`.trim();
+
+  const ideaBlock = `
+APPROVED IDEA
+- Topic: ${idea?.topic || ''}
+- Angle: ${idea?.angle || ''}
+- Pillar: ${idea?.pillar || ''}
+`.trim();
+
+  return `
+ROLE
+You are a LinkedIn ghostwriter who writes tight, scannable body sections. Each point is one line, starts with an em dash, and delivers one concrete detail. No fluff, no metrics, no bragging.
+
+${userContext}
+
+${strategyContext}
+
+${ideaBlock}
+
+APPROVED HOOK (the opening to be consistent with):
+${hook || '(no hook yet — write a standalone body)'}
+
+WRITING RULES
+- Write 4–10 lines. Each line starts with "— " (em dash followed by space).
+- One idea per line. Each line is a single concrete detail, observation, or takeaway.
+- Do NOT include metrics, numbers, stats, or data.
+- No bragging, no self-promotion, no "I did X" grandstanding.
+- Every line must feel useful or interesting on its own.
+- Do NOT repeat the hook. Assume the reader already read it.
+- Do NOT use Unicode bold — this is raw body text.
+- Return only the body lines. No labels, no explanation, no JSON.
+
+TASK
+Write the body section (4–10 em-dash lines) for this LinkedIn post. Return only the body text.
+`.trim();
+}
+
+export function generateCTAPrompt(idea, strategy, userSettings = {}, hook = '', body = '') {
+  const userContext = `
+USER PROFILE
+- Name: ${userSettings?.fullName || 'Rana Danish'}
+- Headline: ${userSettings?.headline || ''}
+`.trim();
+
+  const ideaBlock = `
+APPROVED IDEA
+- Topic: ${idea?.topic || ''}
+- Angle: ${idea?.angle || ''}
+`.trim();
+
+  return `
+ROLE
+You are a LinkedIn ghostwriter who writes closings that drive engagement. You write one specific question and a handful of relevant hashtags. No fluff, no summary, no sign-off.
+
+${userContext}
+
+${ideaBlock}
+
+EXISTING POST CONTENT (write a CTA that fits this flow naturally):
+Hook: ${hook || '(no hook written)'}
+Body: ${body || '(no body written)'}
+
+WRITING RULES
+- Write exactly two parts separated by a blank line: the engagement question and the hashtag line.
+- The question must be specific to the post content — not generic like "What do you think?" or "Share your thoughts".
+- The question must invite a comment or opinion. One sentence, short, ends with "?".
+- Hashtag line: exactly 4–5 hashtags, space-separated, no commas.
+- Do NOT use Unicode bold — this is raw CTA text.
+- Do NOT include any closing reflection or sign-off like "Thanks for reading" or "Hope this helps".
+- Return only the CTA text (question line, blank line, hashtag line). No labels, no explanation, no JSON.
+
+TASK
+Write the closing engagement question and hashtags for this LinkedIn post. Return only the CTA text.
+`.trim();
+}

@@ -8,7 +8,8 @@ import AboutGoalsSection from '@/components/settings/AboutGoalsSection';
 import VoiceToneSection from '@/components/settings/VoiceToneSection';
 import ServicesSection from '@/components/settings/ServicesSection';
 import ResumeSection from '@/components/settings/ResumeSection';
-import { Save } from 'lucide-react';
+import { Save, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SettingsPage() {
   const { fetchSettings, saveSettings, isLoading, isSaving, error, lastSynced } = useSettingsStore();
@@ -56,6 +57,24 @@ export default function SettingsPage() {
       <VoiceToneSection />
       <ServicesSection />
       <ResumeSection />
+
+      {/* Link to Content Strategy */}
+      <div className="border-t border-highlight/15 my-8" />
+      <section className="mb-12">
+        <div className="border-b border-highlight/15 pb-2 mb-4 flex items-center justify-between">
+          <h3 className="text-xs font-bold text-highlight tracking-widest uppercase">Content Strategy</h3>
+          <Link
+            href="/settings/content-strategy"
+            className="flex items-center gap-1 text-xs font-medium text-glow hover:text-glow/80 transition-colors"
+          >
+            Manage
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+        <p className="text-sm text-highlight">
+          Configure content pillars, audience targeting, tone of voice, posting frequency, and topics to avoid per platform.
+        </p>
+      </section>
 
       {/* Footer controls & status */}
       <div className="mt-12 pt-6 border-t border-highlight/15 flex items-center justify-between">

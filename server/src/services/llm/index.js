@@ -4,10 +4,10 @@ import { callGemini } from './gemini.js';
 
 const FALLBACK_CHAIN = ['groq', 'openrouter', 'gemini'];
 
-export async function callLLM(prompt, options = {}) {
+export async function callLLMWithPriority(prompt, options = {}, providerOrder = FALLBACK_CHAIN) {
   const errors = [];
 
-  for (const provider of FALLBACK_CHAIN) {
+  for (const provider of providerOrder) {
     try {
       if (provider === 'groq') {
         return await callGroq(prompt, options);
@@ -25,6 +25,10 @@ export async function callLLM(prompt, options = {}) {
   }
 
   throw new Error('All LLM providers failed. Please check your API keys and try again.');
+}
+
+export async function callLLM(prompt, options = {}) {
+  return callLLMWithPriority(prompt, options, FALLBACK_CHAIN);
 }
 
 export { callGroq, callOpenRouter, callGemini };

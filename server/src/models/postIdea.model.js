@@ -21,8 +21,8 @@ const postIdeaSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending_approval', 'approved', 'rejected'],
-      default: 'pending_approval',
+      enum: ['pending', 'pending_approval', 'approved', 'rejected'],
+      default: 'pending',
     },
     weekOfDate: {
       type: Date,
