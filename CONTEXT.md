@@ -100,8 +100,9 @@ solus/
 │   │   │   │   ├── openrouter.js
 │   │   │   │   └── gemini.js
 │   │   │   ├── content.service.js   # generateIdeas, generatePost, generateHook/Body/CTA, assembleSections
-│   │   │   ├── publisher.service.js # publishPost(postId) — calls LinkedIn, updates post status
+│   │   │   ├── publisher.service.js # publishPost(postId) — calls LinkedIn, updates post status, sends email notifications
 │   │   │   ├── linkedin.service.js  # publishToLinkedIn(content, imageUrl) — text + image flows
+│   │   │   ├── notification.service.js # sendEmail(to, subject, body) — Nodemailer Gmail SMTP
 │   │   │   └── scraper.js           # URL metadata scraper (cheerio)
 │   │   ├── prompts/
 │   │   │   ├── index.js             # buildUserContext + re-exports all content prompts
@@ -209,7 +210,8 @@ solus/
 - Returns LinkedIn post ID string
 
 **Publisher + Scheduler**
-- `publisher.service.js` — `publishPost(postId)`: loads post, calls `publishToLinkedIn`, sets status `published`/`failed`, saves `publishedAt` + `linkedinPostId`
+- `publisher.service.js` — `publishPost(postId)`: loads post, calls `publishToLinkedIn`, sets status `published`/`failed`, saves `publishedAt` + `linkedinPostId`, sends email notification on success/failure via `notification.service.js`
+- `notification.service.js` — `sendEmail(to, subject, body)` — Nodemailer Gmail SMTP (service: 'gmail'), single exported function
 - `scheduler.js` — node-cron every minute: queries `status: 'scheduled'` + `scheduledAt <= now`, calls `publishPost` for each. Initialized in `server.js` after DB connect.
 
 **Content Controller** (`server/src/controllers/content.controller.js`)
@@ -247,6 +249,11 @@ OPENROUTER_API_KEY=...
 CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
+LINKEDIN_ACCESS_TOKEN=...
+LINKEDIN_PERSON_URN=...
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your-16-char-app-password
+NOTIFY_EMAIL=where-notifications-should-go@example.com
 ```
 
 ### `client/.env`
