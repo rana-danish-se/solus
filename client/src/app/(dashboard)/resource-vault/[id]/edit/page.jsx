@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import Image from 'next/image';
 import { ArrowLeft, Edit3, Save, Loader2, Globe, Link2 } from 'lucide-react';
 import { fetchResourceById, updateResource } from '@/services/resources.service';
 import { RESOURCE_CATEGORIES } from '@/lib/resourceConstants';
@@ -118,10 +119,12 @@ export default function EditResourcePage() {
         {resource?.favicon && (
           <div className="flex items-center gap-3 p-4 bg-highlight/5 border border-highlight/15 rounded-xl">
             <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-white flex items-center justify-center overflow-hidden border border-highlight/15">
-              <img
+              <Image
                 src={resource.favicon}
                 alt="favicon"
-                className="w-6 h-6 object-contain"
+                width={24}
+                height={24}
+                className="object-contain"
               />
             </div>
             <div className="flex-1 min-w-0">

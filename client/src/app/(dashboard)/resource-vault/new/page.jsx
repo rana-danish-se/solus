@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ArrowLeft, Link2, Loader2, Save, Globe, Sparkles } from 'lucide-react';
 import { scrapeResourceMetadata, createResource } from '@/services/resources.service';
 import { RESOURCE_CATEGORIES } from '@/lib/resourceConstants';
@@ -181,10 +182,12 @@ export default function NewResourcePage() {
           <div className="flex items-center gap-3 p-4 bg-highlight/5 border border-highlight/15 rounded-xl">
             <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-white flex items-center justify-center overflow-hidden border border-highlight/15">
               {metadata?.favicon && !faviconError ? (
-                <img
+                <Image
                   src={metadata.favicon}
                   alt="favicon"
-                  className="w-6 h-6 object-contain"
+                  width={24}
+                  height={24}
+                  className="object-contain"
                   onError={() => setFaviconError(true)}
                 />
               ) : (

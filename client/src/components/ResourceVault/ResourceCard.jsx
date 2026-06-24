@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Edit3, Trash2, ExternalLink, Globe } from 'lucide-react';
 import { deleteResource } from '@/services/resources.service';
 import useToastStore from '@/store/toastStore';
@@ -54,10 +55,12 @@ export default function ResourceCard({ resource, onDeleted }) {
       <div className="flex items-start gap-3 mb-3">
         <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-highlight/10 flex items-center justify-center overflow-hidden">
           {favicon && !faviconError ? (
-            <img
+            <Image
               src={favicon}
               alt={`${siteName || 'site'} favicon`}
-              className="w-6 h-6 object-contain"
+              width={24}
+              height={24}
+              className="object-contain"
               onError={() => setFaviconError(true)}
             />
           ) : (

@@ -10,6 +10,11 @@ export const generateIdeas = async () => {
   return response.data;
 };
 
+export const createIdea = async (data) => {
+  const response = await api.post('/content/ideas', data);
+  return response.data;
+};
+
 export const deleteIdea = async (id) => {
   const response = await api.delete(`/content/ideas/${id}`);
   return response.data;
@@ -77,4 +82,27 @@ export const uploadPostImage = async (id, file) => {
 export const removePostImage = async (id) => {
   const response = await api.delete(`/content/posts/${id}/image`);
   return response.data;
+};
+
+export const publishPost = async (id, scheduledAt = null) => {
+  const body = {};
+  if (scheduledAt) body.scheduledAt = scheduledAt;
+  const response = await api.post(`/content/posts/${id}/publish`, body);
+  return response.data;
+};
+
+export const polishPost = async (id) => {
+  const response = await api.post(`/content/posts/${id}/polish`);
+  return response.data;
+};
+
+export const deletePost = async (id) => {
+  const response = await api.delete(`/content/posts/${id}`);
+  return response.data;
+};
+
+export const getPostById = async (id) => {
+  const response = await api.get('/content/posts');
+  const posts = Array.isArray(response.data) ? response.data : [];
+  return posts.find((p) => p._id === id) || null;
 };

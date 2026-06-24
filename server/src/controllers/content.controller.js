@@ -11,9 +11,28 @@ import {
   generateBody,
   generateCTA,
   assembleSections,
+  polishPostContent,
 } from '../services/content.service.js';
 
 // ─── Ideas ───────────────────────────────────────────────
+
+export const createIdea = asyncHandler(async (req, res) => {
+  const { topic, angle, pillar } = req.body;
+  if (!topic || !topic.trim()) {
+    res.status(400);
+    throw new Error('Topic is required');
+  }
+
+  const idea = await PostIdea.create({
+    platform: 'linkedin',
+    topic: topic.trim(),
+    angle: angle?.trim() || '',
+    pillar: pillar?.trim() || 'general',
+    status: 'pending',
+  });
+
+  res.status(201).json(idea);
+});
 
 export const generateNewIdeas = asyncHandler(async (req, res) => {
   const strategy = await ContentStrategy.findOne({ platform: 'linkedin', isActive: true });
@@ -218,9 +237,9 @@ export const approvePost = asyncHandler(async (req, res) => {
 
 export const updateSection = asyncHandler(async (req, res) => {
   const { section, text } = req.body;
-  if (!section || !['hook', 'body', 'cta'].includes(section)) {
+  if (!section || !['hook', 'body', 'cta', 'content'].includes(section)) {
     res.status(400);
-    throw new Error('Valid section field is required: hook, body, or cta');
+    throw new Error('Valid section field is required: hook, body, cta, or content');
   }
   if (text === undefined || text === null) {
     res.status(400);
@@ -233,13 +252,17 @@ export const updateSection = asyncHandler(async (req, res) => {
     throw new Error('Post not found');
   }
 
-  post.sections[section] = text;
+  if (section === 'content') {
+    post.content = text;
+  } else {
+    post.sections[section] = text;
 
-  if (section === 'hook') {
-    post.sections.body = '';
-    post.sections.cta = '';
-  } else if (section === 'body') {
-    post.sections.cta = '';
+    if (section === 'hook') {
+      post.sections.body = '';
+      post.sections.cta = '';
+    } else if (section === 'body') {
+      post.sections.cta = '';
+    }
   }
 
   await post.save();
@@ -312,4 +335,34 @@ export const publishPost = asyncHandler(async (req, res) => {
   await publish(post._id);
   const updated = await Post.findById(post._id);
   res.json(updated);
+});
+
+export const polishPost = asyncHandler(async (req, res) => {
+  const post = await Post.findById(req.params.id);
+  if (!post) {
+    res.status(404);
+    throw new Error('Post not found');
+  }
+
+  if (!post.sections.hook || !post.sections.body || !post.sections.cta) {
+    res.status(400);
+    throw new Error('All sections (hook, body, cta) must be populated before polishing');
+  }
+
+  const assembled = assembleSections(post.sections.hook, post.sections.body, post.sections.cta);
+  const polished = await polishPostContent(assembled);
+
+  post.content = polished;
+  await post.save();
+
+  res.json({ success: true, content: polished });
+});
+
+export const deletePost = asyncHandler(async (req, res) => {
+  const post = await Post.findByIdAndDelete(req.params.id);
+  if (!post) {
+    res.status(404);
+    throw new Error('Post not found');
+  }
+  res.json({ success: true });
 });

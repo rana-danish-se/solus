@@ -15,11 +15,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } else {
-      setChecking(false);
+      const id = setTimeout(() => setChecking(false), 0);
+      return () => { clearTimeout(id); clearError(); };
     }
-    return () => clearError();
   }, [isAuthenticated, router, clearError]);
 
   if (checking) {

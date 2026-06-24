@@ -1,7 +1,9 @@
-import { generateIdeaPrompt, generatePostPrompt, generateHookPrompt, generateBodyPrompt, generateCTAPrompt } from '../prompts/index.js';
+import { generateIdeaPrompt, generatePostPrompt, generateHookPrompt, generateBodyPrompt, generateCTAPrompt, generatePolishPrompt } from '../prompts/index.js';
 import { callLLMWithPriority } from './llm/index.js';
+import PostIdea from '../models/postIdea.model.js';
 
 const IDEA_PROVIDER_ORDER = ['gemini', 'groq', 'openrouter'];
+const POLISH_PROVIDER_ORDER = ['gemini', 'groq', 'openrouter'];
 
 function parseLLMJson(raw) {
   let cleaned = raw.replace(/```json|```/g, '').trim();
@@ -19,7 +21,10 @@ function parseLLMJson(raw) {
 }
 
 export async function generateIdeas(strategy, recentTopics = []) {
-  const prompt = generateIdeaPrompt(strategy, recentTopics);
+  const lastIdea = await PostIdea.findOne().sort({ createdAt: -1 }).select('pillar').lean();
+  const currentPillar = lastIdea?.pillar || null;
+
+  const prompt = generateIdeaPrompt(strategy, recentTopics, currentPillar);
   const raw = await callLLMWithPriority(prompt, {}, IDEA_PROVIDER_ORDER);
 
   let parsed;
@@ -55,4 +60,9 @@ export async function generateCTA(idea, strategy, userSettings = {}, hook = '', 
 export function assembleSections(hook, body, cta) {
   const parts = [hook, body, cta].filter(Boolean);
   return parts.join('\n\n');
+}
+
+export async function polishPostContent(assembledPost) {
+  const prompt = generatePolishPrompt(assembledPost);
+  return await callLLMWithPriority(prompt, {}, POLISH_PROVIDER_ORDER);
 }

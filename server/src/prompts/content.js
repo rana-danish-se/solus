@@ -30,9 +30,13 @@ function buildRecentTopicsList(recentTopics) {
     .join('\n');
 }
 
-export function generateIdeaPrompt(strategy, recentTopics = []) {
+export function generateIdeaPrompt(strategy, recentTopics = [], currentPillar = null) {
   const strategyContext = buildStrategyContext(strategy || {});
   const recentTopicsList = buildRecentTopicsList(recentTopics);
+
+  const pillarRotationRule = currentPillar
+    ? `\nPILLAR ROTATION RULE: The pillar field in your response MUST NOT be: ${currentPillar}. You must choose a different pillar from the list above.`
+    : '';
 
   return `
 ROLE
@@ -42,6 +46,7 @@ ${strategyContext}
 
 RECENTLY USED TOPICS (do NOT repeat or closely mirror any of these):
 ${recentTopicsList}
+${pillarRotationRule}
 
 TASK
 Generate exactly ONE new LinkedIn post idea that:
@@ -85,22 +90,17 @@ APPROVED IDEA TO WRITE
 `.trim();
 
   const formatExample = `
-𝐇𝐞𝐚𝐝𝐥𝐢𝐧𝐞 𝐢𝐧 𝐔𝐧𝐢𝐜𝐨𝐝𝐞 𝐛𝐨𝐥𝐝 𝐡𝐞𝐫𝐞.
+Short, punchy opening paragraph that hooks the reader in 1–2 sentences.
 
-Short punchy opening paragraph that sets the scene in 1–2 sentences.
+Another short paragraph that continues the thought and adds personal context or builds on the idea.
 
-Another short paragraph that continues the thought and adds personal context.
+A third paragraph if needed to flesh out the point. Keep it conversational, not academic.
 
-Here is what it actually looked like:
-→ 𝐁𝐨𝐥𝐝 𝐤𝐞𝐲 𝐩𝐡𝐫𝐚𝐬𝐞 plain text explanation after.
-→ 𝐁𝐨𝐥𝐝 𝐤𝐞𝐲 𝐩𝐡𝐫𝐚𝐬𝐞 plain text explanation after.
-→ 𝐁𝐨𝐥𝐝 𝐤𝐞𝐲 𝐩𝐡𝐫𝐚𝐬𝐞 plain text explanation after.
+→ Key takeaway or important insight worth highlighting.
 
-Closing reflection paragraph that ties it back to the opening.
+Closing paragraph that ties it back to the opening. One or two sentences, max.
 
-Punchy one liner that lands the message.
-
-Engagement question that invites comments?
+End with a question that invites comments?
 
 #hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5
 `.trim();
@@ -117,17 +117,17 @@ ${ideaBlock}
 
 WRITING RULES
 - Write in FIRST PERSON as Rana Danish.
-- Match the TONE from the strategy above AND the VOICE & TONE from the user profile — they must feel consistent.
-- Strictly follow the FORMAT NOTES from the strategy.
-- Use Unicode bold characters (𝐀-𝐙 𝐚-𝐳) for the headline and for the bold key phrase in every arrow point. Do NOT use Markdown asterisks (**) or underscores.
-- Use the arrow character "→" exactly as shown in the example for each bullet point.
-- Keep proper line breaks between sections — single blank line between paragraphs and between the arrow block and the closing section.
+- Match the TONE from the strategy above AND the VOICE & TONE from the user profile.
+- Write in natural paragraphs with proper English punctuation and line breaks. One blank line between paragraphs.
+- Keep paragraphs short (1–3 sentences each). No walls of text.
+- Use "→" sparingly — only for 1–2 key takeaways or important insights, not for every line. Most of the post should be normal paragraphs.
+- Use bold or emphasis naturally where it fits (not via Unicode math characters — just plain text with natural emphasis).
 - End the post with a single engagement question (one line, ending with a question mark).
 - End with 4–5 relevant hashtags on the final line, separated by single spaces.
 - Do NOT include any preamble like "Here's your post:" or "Sure!". Return the post text only.
 - Do NOT wrap the output in JSON, code fences, or backticks.
 
-FORMATTING REFERENCE (match this structure exactly, including line breaks and Unicode bold)
+FORMATTING REFERENCE (natural structure — adapt freely, don't copy verbatim)
 
 ${formatExample}
 
@@ -164,8 +164,10 @@ WRITING RULES
 - No buzzwords: "game-changer", "revolutionary", "unlocking", "supercharged", "leverage", "deep dive".
 - Must be scroll-stopping — a bold claim, a surprising take, a relatable struggle, or a provocative question.
 - Conversational tone. Write like you speak.
-- Do NOT use Unicode bold or formatting — this is raw hook text.
+- Use proper English punctuation.
+- Keep it plain text. No bold, no formatting.
 - Return only the hook text. No labels, no explanation, no JSON, no quotes around it.
+- Do NOT return the entire response as a single unbroken block of text. Paragraph breaks are part of the output requirement, not optional.
 
 TASK
 Write the hook (opening 1–2 lines) for this LinkedIn post idea. Return only the hook text.
@@ -191,7 +193,7 @@ APPROVED IDEA
 
   return `
 ROLE
-You are a LinkedIn ghostwriter who writes tight, scannable body sections. Each point is one line, starts with an em dash, and delivers one concrete detail. No fluff, no metrics, no bragging.
+You are a LinkedIn ghostwriter who writes tight, scannable body sections. You write in short, conversational paragraphs with proper English punctuation.
 
 ${userContext}
 
@@ -203,17 +205,28 @@ APPROVED HOOK (the opening to be consistent with):
 ${hook || '(no hook yet — write a standalone body)'}
 
 WRITING RULES
-- Write 4–10 lines. Each line starts with "— " (em dash followed by space).
-- One idea per line. Each line is a single concrete detail, observation, or takeaway.
+- Write 2–4 short paragraphs. Each paragraph is 1–3 sentences.
+- Separate each paragraph with a single blank line (two newline characters: \n\n). This is mandatory — do not run paragraphs together.
+- Use proper English punctuation and natural line breaks.
+- Keep it conversational, not academic or salesy.
+- Optionally use "→" once or twice to highlight a key takeaway, but most of the body should be normal paragraphs.
+- Do NOT start every line with an arrow or bullet.
 - Do NOT include metrics, numbers, stats, or data.
 - No bragging, no self-promotion, no "I did X" grandstanding.
-- Every line must feel useful or interesting on its own.
 - Do NOT repeat the hook. Assume the reader already read it.
-- Do NOT use Unicode bold — this is raw body text.
-- Return only the body lines. No labels, no explanation, no JSON.
+- Keep it plain text (no bold, no special characters besides → for emphasis).
+- Return only the body text. No labels, no explanation, no JSON.
+- Do NOT return the entire response as a single unbroken block of text. Paragraph breaks are part of the output requirement, not optional.
+
+EXAMPLE OUTPUT STRUCTURE (follow this exactly):
+First paragraph here. One to three sentences.
+
+Second paragraph here. One to three sentences.
+
+Third paragraph here if needed.
 
 TASK
-Write the body section (4–10 em-dash lines) for this LinkedIn post. Return only the body text.
+Write the body section (2–4 short paragraphs) for this LinkedIn post. Return only the body text.
 `.trim();
 }
 
@@ -243,15 +256,52 @@ Hook: ${hook || '(no hook written)'}
 Body: ${body || '(no body written)'}
 
 WRITING RULES
-- Write exactly two parts separated by a blank line: the engagement question and the hashtag line.
+- You MUST output exactly two lines with a blank line between them. Line 1: the engagement question. One blank line. Line 2: the hashtags. Nothing else.
 - The question must be specific to the post content — not generic like "What do you think?" or "Share your thoughts".
 - The question must invite a comment or opinion. One sentence, short, ends with "?".
 - Hashtag line: exactly 4–5 hashtags, space-separated, no commas.
 - Do NOT use Unicode bold — this is raw CTA text.
 - Do NOT include any closing reflection or sign-off like "Thanks for reading" or "Hope this helps".
 - Return only the CTA text (question line, blank line, hashtag line). No labels, no explanation, no JSON.
+- Do NOT return the entire response as a single unbroken block of text. Paragraph breaks are part of the output requirement, not optional.
+
+EXAMPLE OUTPUT STRUCTURE (follow this exactly):
+What has been your biggest challenge when explaining technical work to clients?
+
+#Hashtag1 #Hashtag2 #Hashtag3 #Hashtag4
 
 TASK
 Write the closing engagement question and hashtags for this LinkedIn post. Return only the CTA text.
+`.trim();
+}
+
+export function generatePolishPrompt(assembledPost) {
+  return `
+ROLE
+You are a LinkedIn post editor. You receive a draft post and return a polished, publish-ready version.
+
+INPUT POST:
+${assembledPost}
+
+RULES
+- Do NOT rewrite sentences. Do NOT change meaning. Do NOT add or remove ideas.
+- Fix punctuation errors only where clearly wrong.
+- Ensure proper paragraph separation — each paragraph separated by a single blank line (\\n\\n).
+- Add Unicode bold using Mathematical Bold characters (e.g., 𝗯𝗼𝗹𝗱) to 3–6 key phrases or words that deserve emphasis. Do not bold entire sentences. Bold short impactful phrases only.
+- CRITICAL: Do NOT use markdown **bold** or *italic*. LinkedIn does not render markdown. You MUST use Unicode Mathematical Bold characters only.
+- The hook (first 1–2 lines) must NOT start with "I", "Today", or "Excited".
+- The last line before hashtags must be an engagement question ending with "?".
+- Hashtags stay on the final line, unchanged, space-separated.
+- Return ONLY the polished post text. No labels, no explanation, no JSON, no backticks.
+
+EXAMPLE — Correct Unicode bold usage:
+Before: "The key to success is consistency."
+After: "The key to success is 𝗰𝗼𝗻𝘀𝗶𝘀𝘁𝗲𝗻𝗰𝘆."
+
+EXAMPLE — WRONG (do not do this):
+"The key to success is **consistency**."
+
+TASK
+Polish the input post according to the rules above. Return only the polished post text.
 `.trim();
 }
