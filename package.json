@@ -1,5 +1,11 @@
 {
-  "dependencies": {
-    "nodemailer": "^9.0.1"
+  "name": "solus",
+  "private": true,
+  "scripts": {
+    "build": "cd client && npm run build",
+    "dev": "cd client && npm run dev",
+    "install": "cd client && npm install",
+    "start": "cd client && npm start",
+    "lint": "cd client && npm run lint"
   }
 }
