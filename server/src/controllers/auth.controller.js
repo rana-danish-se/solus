@@ -22,7 +22,7 @@ export const login = asyncHandler(async (req, res) => {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
     });
     
@@ -42,7 +42,7 @@ export const logout = asyncHandler(async (req, res) => {
     httpOnly: true,
     expires: new Date(0),
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/',
   });
   res.json({ success: true, message: 'Logged out successfully' });
