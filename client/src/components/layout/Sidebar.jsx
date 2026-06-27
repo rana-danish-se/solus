@@ -9,6 +9,7 @@ import {
   PenTool,
   Briefcase,
   UserCircle,
+  MessageCircle,
   BrainCircuit,
   LogOut,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ const navItems = [
   { name: 'Content Studio', href: '/content-studio', icon: PenTool },
   { name: 'Freelance Tracker', href: '/freelance-tracker', icon: Briefcase },
   { name: 'Career Assistant', href: '/career-assistant', icon: UserCircle },
+  { name: 'Conversations', href: '/conversations', icon: MessageCircle },
   { name: 'AI Brain', href: '/ai-brain', icon: BrainCircuit },
 ];
 
