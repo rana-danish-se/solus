@@ -1,4 +1,4 @@
-import TodaysFocus from '@/components/dashboard/TodaysFocus';
+import DailyChecklist from '@/components/dashboard/DailyChecklist';
 import RevenueSnapshot from '@/components/dashboard/RevenueSnapshot';
 import LearningStreak from '@/components/dashboard/LearningStreak';
 import AIBrainCard from '@/components/dashboard/AIBrainCard';
@@ -9,9 +9,9 @@ export default function DashboardPage() {
   return (
     <div className="w-full max-w-[1100px] mx-auto space-y-6">
 
-      {/* Row 1: Today's Focus | Revenue Snapshot | Learning Streak */}
+      {/* Row 1: Daily Checklist | Revenue Snapshot | Learning Streak */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <TodaysFocus />
+        <DailyChecklist />
         <RevenueSnapshot />
         <LearningStreak />
       </div>
