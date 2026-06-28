@@ -13,9 +13,9 @@ import {
   Send,
   Loader2,
   ExternalLink,
-  Linkedin,
-  Twitter,
-  Instagram,
+  Briefcase,
+  AtSign,
+  Camera,
   Globe,
   Archive,
   Trash2,
@@ -344,9 +344,9 @@ function ProspectPanel({ prospect, conversationId, onArchive, onDelete, onUpdate
   const socials = prospect?.socials || {};
 
   const socialLinks = [
-    { key: 'linkedin', icon: Linkedin, href: socials.linkedin },
-    { key: 'twitter', icon: Twitter, href: socials.twitter },
-    { key: 'instagram', icon: Instagram, href: socials.instagram },
+    { key: 'linkedin', icon: Briefcase, href: socials.linkedin },
+    { key: 'twitter', icon: AtSign, href: socials.twitter },
+    { key: 'instagram', icon: Camera, href: socials.instagram },
     { key: 'portfolio', icon: Globe, href: socials.portfolio },
   ].filter((s) => s.href);
 

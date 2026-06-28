@@ -26,3 +26,4 @@ USER PROFILE
 }
 
 export { generateIdeaPrompt, generatePostPrompt, generateHookPrompt, generateBodyPrompt, generateCTAPrompt, generatePolishPrompt } from './content.js';
+export { buildConversationReplyPrompt, buildSummarizationPrompt } from './conversation.js';
